@@ -1,6 +1,7 @@
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
+import mongoose from "mongoose";
 
 import contactsRouter from "./routes/contactsRouter.js";
 
@@ -24,3 +25,13 @@ app.use((err, req, res, next) => {
 app.listen(3000, () => {
   console.log("Server is running. Use our API on port: 3000");
 });
+
+const DB_HOST = "mongodb+srv://Hanna:SQy9UWkE6A4yEMNc@cluster0.rwthgto.mongodb.net/my-contacts?retryWrites=true&w=majority&appName=Cluster0";
+
+mongoose.connect(DB_HOST)
+  .then(() => {
+    console.log("Database connection successful")
+  })
+  .catch(error => {
+
+  });
