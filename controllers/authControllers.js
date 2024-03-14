@@ -52,9 +52,37 @@ export const signin = async (req, res, next) => {
         }
 
         const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "23h" });
+        await authServices.updateUser({ _id: id }, { token });
 
         res.json({
             token,
+        })
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const getCurrent = async (req, res, next) => {
+    try {
+        const { email } = req.user;
+
+        res.json({
+            email,
+        })
+    } catch (error) {
+        next(error);
+    };
+
+}
+
+export const logout = async (req, res, next) => {
+    try {
+        const { _id } = req.user;
+        await authServices.updateUser({ _id }, { token: "" });
+
+        res.status(204).json({
+            message: "204 No Content"
         })
 
     } catch (error) {
