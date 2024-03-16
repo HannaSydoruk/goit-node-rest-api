@@ -1,7 +1,7 @@
 import exp from "constants";
 import Contact from "../models/Contact.js";
 
-export const getAllContacts = () => Contact.find();
+export const getAllContacts = (owner) => Contact.find({ owner });
 
 export const getOneContact = id => Contact.findById(id);
 
