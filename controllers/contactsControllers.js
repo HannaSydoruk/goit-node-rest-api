@@ -4,8 +4,8 @@ import { createContactSchema, updateContactSchema, updateStatusSchema } from "..
 
 export const getAllContacts = async (req, res, next) => {
     try {
-        const { _id: owner } = req.user;
-        const result = await contactsService.getAllContacts(owner);
+        const { _id } = req.user;
+        const result = await contactsService.getAllContacts().where("owner").equals(_id);
 
         res.json(result);
     } catch (error) {
