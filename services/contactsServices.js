@@ -1,4 +1,3 @@
-import exp from "constants";
 import Contact from "../models/Contact.js";
 
 export const getAllContacts = (ownerId) => Contact.find().where("owner").equals(ownerId);
