@@ -5,7 +5,7 @@ import { createContactSchema, updateContactSchema, updateStatusSchema } from "..
 export const getAllContacts = async (req, res, next) => {
     try {
         const { _id } = req.user;
-        const result = await contactsService.getAllContacts().where("owner").equals(_id);
+        const result = await contactsService.getAllContacts(_id);
 
         res.json(result);
     } catch (error) {
@@ -17,7 +17,7 @@ export const getOneContact = async (req, res, next) => {
     try {
         const { _id } = req.user;
         const { id } = req.params;
-        const result = await contactsService.getOneContact(id).where("owner").equals(_id);
+        const result = await contactsService.getOneContact(id, _id);
         if (!result) {
             throw HttpError(404, `Contact with id=${id} not found`);
         }
@@ -31,7 +31,7 @@ export const deleteContact = async (req, res, next) => {
     try {
         const { _id } = req.user;
         const { id } = req.params;
-        const result = await contactsService.removeContact(id).where("owner").equals(_id);
+        const result = await contactsService.removeContact(id, _id);
         if (!result) {
             throw HttpError(404, `Contact with id=${id} not found`);
         }
@@ -64,7 +64,7 @@ export const updateContact = async (req, res, next) => {
         }
         const { _id } = req.user;
         const { id } = req.params;
-        const result = await contactsService.updateContact(id, req.body).where("owner").equals(_id);
+        const result = await contactsService.updateContact(id, _id, req.body);
         if (!result) {
             throw HttpError(404, `Contact with id=${id} not found`);
         }
@@ -84,7 +84,7 @@ export const updateStatusContact = async (req, res, next) => {
         }
         const { _id } = req.user;
         const { id } = req.params;
-        const result = await contactsService.updateStatusContact(id, req.body).where("owner").equals(_id);
+        const result = await contactsService.updateStatusContact(id, _id, req.body);
         if (!result) {
             throw HttpError(404, `Contact with id=${id} not found`);
         }
