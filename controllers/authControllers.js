@@ -1,4 +1,7 @@
 import jwt from "jsonwebtoken";
+import * as gravatar from "gravatar";
+import fs from "fs/promises";
+import path from "path";
 
 import * as authServices from "../services/authServices.js";
 
@@ -8,6 +11,7 @@ import { createContactSchema, updateContactSchema, updateStatusSchema } from "..
 import { handleServerError } from "../models/hooks.js";
 
 const { JWT_SECRET } = process.env;
+const avatarsPath = path.resolve("public", "avatars");
 
 export const signup = async (req, res, next) => {
     try {
@@ -17,7 +21,8 @@ export const signup = async (req, res, next) => {
             throw HttpError(409, "Email in use")
         }
         const subscription = req.body.subscription ?? "starter";
-        const body = { ...req.body, subscription }
+        const avatarURL = gravatar.url(req.body.email);
+        const body = { ...req.body, subscription, avatarURL }
         const newUser = await authServices.signup(body);
 
         res.status(201).json({
@@ -90,6 +95,25 @@ export const logout = async (req, res, next) => {
             message: "204 No Content"
         })
 
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const patchAvatar = async (req, res, next) => {
+    try {
+        const { _id } = req.user;
+
+        const { path: oldPath, filename } = req.file;
+        const newPath = path.join(avatarsPath, filename);
+        await fs.rename(oldPath, newPath);
+        const avatarURL = path.join("avatars", filename);
+
+        await authServices.updateUser({ _id }, { avatarURL });
+
+        res.status(200).json({
+            avatarURL: avatarURL
+        });
     } catch (error) {
         next(error);
     }
