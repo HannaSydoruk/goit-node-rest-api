@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import * as gravatar from "gravatar";
 import fs from "fs/promises";
 import path from "path";
+import Jimp from "jimp";
 
 import * as authServices from "../services/authServices.js";
 
@@ -35,7 +36,6 @@ export const signup = async (req, res, next) => {
         next(error);
     }
 }
-
 
 export const signin = async (req, res, next) => {
     try {
@@ -103,6 +103,9 @@ export const logout = async (req, res, next) => {
 export const patchAvatar = async (req, res, next) => {
     try {
         const { _id } = req.user;
+
+        const image = await Jimp.read(req.file.path);
+        await image.resize(250, 250).write(req.file.path);
 
         const { path: oldPath, filename } = req.file;
         const newPath = path.join(avatarsPath, filename);
