@@ -3,13 +3,14 @@ import * as gravatar from "gravatar";
 import fs from "fs/promises";
 import path from "path";
 import Jimp from "jimp";
+import { nanoid } from 'nanoid'
 
 import * as authServices from "../services/authServices.js";
+import * as emailService from "../services/emailServices.js";
 
 import HttpError from "../helpers/HttpError.js";
 
-import { createContactSchema, updateContactSchema, updateStatusSchema } from "../schemas/contactsSchemas.js";
-import { handleServerError } from "../models/hooks.js";
+import { resendVerificationEmailSchema } from "../schemas/usersSchemas.js";
 
 const { JWT_SECRET } = process.env;
 const avatarsPath = path.resolve("public", "avatars");
@@ -23,8 +24,11 @@ export const signup = async (req, res, next) => {
         }
         const subscription = req.body.subscription ?? "starter";
         const avatarURL = gravatar.url(req.body.email);
-        const body = { ...req.body, subscription, avatarURL }
+        const verificationToken = nanoid();
+        const body = { ...req.body, subscription, avatarURL, verificationToken }
         const newUser = await authServices.signup(body);
+
+        await emailService.sendVerifyEmail(email, verificationToken);
 
         res.status(201).json({
             "user": {
@@ -50,6 +54,10 @@ export const signin = async (req, res, next) => {
             throw HttpError(401, "Email or password is wrong")
         }
 
+        if (!user.verify) {
+            throw HttpError(400, "Email isn't verified")
+        }
+
         const { _id: id } = user;
 
         const payload = {
@@ -67,6 +75,49 @@ export const signin = async (req, res, next) => {
             }
         })
 
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const verify = async (req, res, next) => {
+    try {
+        const { verificationToken } = req.params;
+        const user = await authServices.findUser({ verificationToken });
+        if (!user) {
+            throw HttpError(404, "User not found")
+        }
+
+        await authServices.updateUser({ _id: user._id }, { verificationToken: "-", verify: true });
+
+        res.status(200).json({ message: "Verification successful" });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const resendVerificationEmail = async (req, res, next) => {
+    try {
+        const { error } = resendVerificationEmailSchema.validate(req.body);
+        if (error) {
+            throw HttpError(400, error.message);
+        }
+
+        const { email } = req.body;
+        const user = await authServices.findUser({ email });
+        if (!user) {
+            throw HttpError(404, "User not found");
+        }
+
+        if (user.verify) {
+            throw HttpError(404, "Verification has already been passed");
+        }
+
+        await emailService.sendVerifyEmail(user);
+
+        res.status(200).json({
+            message: "Verification email sent"
+        });
     } catch (error) {
         next(error);
     }
