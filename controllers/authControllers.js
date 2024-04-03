@@ -113,7 +113,7 @@ export const resendVerificationEmail = async (req, res, next) => {
             throw HttpError(404, "Verification has already been passed");
         }
 
-        await emailService.sendVerifyEmail(user);
+        await emailService.sendVerifyEmail(email, user.verificationToken);
 
         res.status(200).json({
             message: "Verification email sent"

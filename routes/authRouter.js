@@ -2,8 +2,6 @@ import express from "express";
 
 import * as authController from "../controllers/authControllers.js";
 
-import { userSigninSchema, userSignupSchema } from "../schemas/usersSchemas.js";
-
 import authenticate from "../middlewares/authenticate.js";
 import upload from "../middlewares/upload.js";
 
