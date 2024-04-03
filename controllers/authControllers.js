@@ -155,6 +155,10 @@ export const patchAvatar = async (req, res, next) => {
     try {
         const { _id } = req.user;
 
+        if (!req.file) {
+            throw HttpError(400, "Avatar is not provided");
+        }
+
         const image = await Jimp.read(req.file.path);
         await image.resize(250, 250).write(req.file.path);
 
